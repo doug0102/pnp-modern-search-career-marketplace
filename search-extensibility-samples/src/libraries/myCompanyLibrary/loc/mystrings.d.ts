@@ -11,15 +11,23 @@ declare interface IMyCompanyLibraryLibraryStrings {
     SuffixDescription:string;
     SuffixPlaceholder:string;
   }
+  MyOpportunitiesQueryModifier: {
+    GroupName:string;
+  },
   classificationLevel: string;
   opportunityType: string;
   duration: string;
+  description: string;
   location: string;
   deadline: string;
   view: string;
   apply: string;
   results: string;
   resultsFor: string;
+  viewAria: string;
+  applyAria: string;
+  jobExpired: string;
+  applyExpired: string;
 }
 
 declare module 'MyCompanyLibraryLibraryStrings' {

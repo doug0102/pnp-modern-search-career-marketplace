@@ -23,6 +23,7 @@ import { AdvancedSearchQueryModifier } from "../CustomQueryModifier";
 import { CustomDataSource } from "../CustomDataSource";
 import { SelectLanguage } from "../SelectLanguage";
 import { Globals } from "../Globals";
+import { MyOpportunitiesQueryModifier } from "../MyOpportunitiesQueryModifier";
 
 export class MyCompanyLibraryLibrary implements IExtensibilityLibrary {
   
@@ -39,6 +40,8 @@ export class MyCompanyLibraryLibrary implements IExtensibilityLibrary {
       this._spHttpClient = serviceScope.consume(SPHttpClient.serviceKey);
       this._pageContext = serviceScope.consume(PageContext.serviceKey);
       this._currentWebUrl = this._pageContext.web.absoluteUrl;
+
+      Globals.userDisplayName = this._pageContext.user.displayName;
     });
   }
 
@@ -86,13 +89,6 @@ export class MyCompanyLibraryLibrary implements IExtensibilityLibrary {
   }
 
   public registerHandlebarsCustomizations(namespace: typeof Handlebars) {
-
-    // Register custom Handlebars helpers
-    // Usage {{myHelper 'value'}}
-    namespace.registerHelper('myHelper', (value: string) => {
-      return new namespace.SafeString(value.toUpperCase());
-    });
-
     namespace.registerHelper('results', (value: any) => {
       try {
         if (value['string'].indexOf('\'') != -1)
@@ -108,20 +104,56 @@ export class MyCompanyLibraryLibrary implements IExtensibilityLibrary {
         console.log(e);
         return value;
       }
-      
     });
 
     namespace.registerHelper('resultsNoQueryText', (value: any) => {
       try {
         return new namespace.SafeString(
-          `${value['string'].replace(' for ', '').replace('\'<em>[object Object]</em>\'', '').replace('results', SelectLanguage(Globals.getLanguage()).results)}`
+          `${value['string']
+            .replace(' for ', '')
+            .replace(' de ', '')
+            .replace('« ','')
+            .replace(' »','')
+            .replace('<em>[object Object]</em>', '')
+            .replace('\'<em>[object Object]</em>\'', '')
+            .replace('\'\'','')
+            .replace('results', SelectLanguage(Globals.getLanguage()).results)}`
         );
       }
       catch (e) {
         console.log(e);
         return value;
       }
-      
+    });
+
+    namespace.registerHelper('term', (value: string) => {
+      try {
+        const matches = value.match(/L0\|#[^|]+\|(.+)/);
+        return matches && matches[1] ? matches[1].trim() : value;
+      }
+      catch (e) {
+        console.log(e);
+        return value;
+      }
+    });
+
+    namespace.registerHelper('terms', (value: string) => {
+      try {
+        if (value){
+          let terms = [];
+          let split = value.split(';GTSet');
+          for (let i = 0; i < split.length - (split.length > 1 ? 1 : 0); i++) {
+            const parts = split[i].split('|');
+            terms.push(parts[parts.length - 1]);
+          }
+          return terms.join(', ');
+        }
+        return value;
+      }
+      catch (e) {
+        console.log(e);
+        return value;
+      }
     });
   }
 
@@ -167,6 +199,12 @@ export class MyCompanyLibraryLibrary implements IExtensibilityLibrary {
         description: 'A query modifier for career marketplace advanced search.',
         serviceKey: ServiceKey.create<IQueryModifier>('MyCompany:CustomQueryModifier', AdvancedSearchQueryModifier)
 
+      },
+      {
+        name: 'Owner Opportunities',
+        key: 'MyOpportunities',
+        description: 'A query modifier for career marketplace which returns the logged in user\'s job opportunities that they have posted to the system.',
+        serviceKey: ServiceKey.create<IQueryModifier>('MyCompany:MyOpportunitiesQueryModifier', MyOpportunitiesQueryModifier)
       }
     ];
   }

@@ -12,14 +12,22 @@ define([], function() {
           "SuffixDescription":"A string to append to each word found in the input query text.",
           "SuffixPlaceholder":"*"
       },
-      "classificationLevel": "Classification level",
+      "MyOpportunitiesQueryModifier": {
+        "GroupName": "Owner Opportunities Settings"
+      },
+      "classificationLevel": "Classification",
       "opportunityType": "Opportunity type",
       "duration": "Duration",
+      "description": "Description",
       "location": "Location",
       "deadline": "Deadline",
       "view": "View",
       "apply": "Apply",
       "results": "results",
-      "resultsFor": "results for"
+      "resultsFor": "results for",
+      "viewAria": "View ",
+      "applyAria": "Apply to ",
+      "jobExpired": "This opportunity has expired.",
+      "applyExpired": "Applications Closed"
   }
 });

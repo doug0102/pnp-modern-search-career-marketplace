@@ -1,49 +1,53 @@
 <content id="data-content">
     <style>
-        
+        pnp-pagination >div:first-child {
+            padding-top: 25px;
+        }
+
+        .cmresults {
+            list-style-type: none;
+        }
     </style>
 
     <div class="template_root">
 
         {{#if @root.properties.showResultsCount}}
            <div class="template--resultCount">
-               <label class="ms-fontWeight-semibold">{{resultsNoQueryText (getCountMessage @root.data.totalItemsCount)}}</label>
-               <!-- <label class="ms-fontWeight-semibold">{{results (getCountMessage @root.data.totalItemsCount @root.inputQueryText)}}</label> -->
+               <span class="ms-fontWeight-semibold" aria-live="polite">{{resultsNoQueryText (getCountMessage @root.data.totalItemsCount)}}</span>
+               <!-- <span class="ms-fontWeight-semibold" aria-live="polite">{{results (getCountMessage @root.data.totalItemsCount @root.inputQueryText)}}</span> -->
            </div>
         {{/if}}
-
-        <ul class="template_defaultList cmresults">
-            {{#each data.items as |item|}} 
-                <job-opportunity-card 
-                    path="{{item.Path}}"
-                    application-deadline-date="{{item.CM-ApplicationDeadlineDate}}"
-                    approved-staffing="{{item.CM-ApprovedStaffing}}"
-                    asset-skills="{{item.CM-AssetSkills}}"
-                    city="{{item.CM-City}}"
-                    classification-code="{{item.CM-ClassificationCode}}"
-                    classification-level="{{item.CM-ClassificationLevel}}"
-                    contact-email="{{item.CM-ContactEmail}}"
-                    contact-name="{{item.CM-ContactName}}"
-                    contact-object-id="{{item.CM-ContactObjectId}}"
-                    department="{{item.CM-Department}}"
-                    duration="{{item.CM-Duration}}"
-                    essential-skills="{{item.CM-EssentialSkills}}"
-                    job-description-en="{{item.CM-JobDescriptionEn}}"
-                    job-description-fr="{{item.CM-JobDescriptionFr}}"
-                    job-title-en="{{item.CM-JobTitleEn}}"
-                    job-title-fr="{{item.CM-JobTitleFr}}"
-                    job-type="{{item.JobType}}"
-                    language-requirement="{{item.CM-LanguageRequirement}}"
-                    location="{{item.CM-Location}}"
-                    number-of-opportunities="{{item.CM-NumberOfOpportunities}}"
-                    program-area="{{item.CM-ProgramArea}}"
-                    security-clearance="{{item.CM-SecurityClearance}}"
-                    work-arrangement="{{item.CM-WorkArrangement}}"
-                    work-schedule="{{item.CM-WorkSchedule}}"
-                >
-                </job-opportunity-card>
-            {{/each}}
-        </ul>
+        
+        {{#if data.items.length}}
+            <ul class="template_defaultList cmresults">
+                {{#each data.items as |item|}} 
+                    <li>
+                        <job-opportunity-card 
+                            path="{{item.Path}}"
+                            application-deadline-date="{{ lookup item @root.properties.layoutProperties.applicationDeadlineDate }}"
+                            city-en="{{ lookup item @root.properties.layoutProperties.cityEn }}"
+                            city-fr="{{ lookup item @root.properties.layoutProperties.cityFr }}"
+                            classification-level="{{ lookup item @root.properties.layoutProperties.classificationLevel }}"
+                            classification-code-en="{{ lookup item @root.properties.layoutProperties.classificationCodeEn }}"
+                            classification-code-fr="{{ lookup item @root.properties.layoutProperties.classificationCodeFr }}"
+                            contact-email="{{ lookup item @root.properties.layoutProperties.contactEmail }}"
+                            contact-name="{{ lookup item @root.properties.layoutProperties.contactName }}"
+                            contact-object-id="{{ lookup item @root.properties.layoutProperties.contactObjectId }}"
+                            duration-en="{{ lookup item @root.properties.layoutProperties.durationEn }}"
+                            duration-fr="{{ lookup item @root.properties.layoutProperties.durationFr }}"
+                            job-description-en="{{ lookup item @root.properties.layoutProperties.jobDescriptionEn }}"
+                            job-description-fr="{{ lookup item @root.properties.layoutProperties.jobDescriptionFr }}"
+                            job-title-en="{{ lookup item @root.properties.layoutProperties.jobTitleEn }}"
+                            job-title-fr="{{ lookup item @root.properties.layoutProperties.jobTitleFr }}"
+                            job-type="{{ lookup item @root.properties.layoutProperties.jobType }}"
+                            duration-quantity="{{ lookup item @root.properties.layoutProperties.durationQuantity }}"
+                            job-type-term-set-guid="{{ @root.properties.layoutProperties.jobTypeTermSetGuid }}"
+                        >
+                        </job-opportunity-card>
+                    </li>
+                {{/each}}
+            </ul>
+        {{/if}}
 
         {{#if @root.properties.paging.showPaging}}
             {{#gt @root.data.totalItemsCount @root.properties.paging.itemsCountPerPage}}
