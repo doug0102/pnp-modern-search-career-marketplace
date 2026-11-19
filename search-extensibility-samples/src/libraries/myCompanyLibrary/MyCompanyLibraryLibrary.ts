@@ -18,12 +18,17 @@ import * as Handlebars from "handlebars";
 import { MyCustomComponentWebComponent } from "../CustomComponent";
 import { CustomLayout } from "../CustomLayout";
 import { CustomSuggestionProvider } from "../CustomSuggestionProvider";
-import { CustomQueryModifier } from "../CustomQueryModifier";
+import { AdvancedSearchQueryModifier } from "../CustomQueryModifier";
+import { MyOpportunitiesQueryModifier } from "../MyOpportunitiesQueryModifier";
 import { CustomDataSource } from "../CustomDataSource";
 import { CustomPersonaWebComponent } from "../components/CustomPersonaComponent";
 import { CustomPersonCardWebComponent } from "../components/CustomPersonCardComponent";
 import { CustomSimpleListLayout } from "../layouts/results/customSimpleList/CustomSimpleListLayout";
 import { CustomPeopleLayout } from "../layouts/results/customPeople/CustomPeopleLayout";
+import { SelectLanguage } from "../SelectLanguage";
+import { Globals, Language } from "../Globals";
+import { NewsArticleWebComponent } from "../NewsArticle/NewsArticle";
+import { NewsArticleLayout } from "../NewsArticle/NewsArticleLayout";
 
 export class MyCompanyLibraryLibrary implements IExtensibilityLibrary {
   
@@ -40,7 +45,13 @@ export class MyCompanyLibraryLibrary implements IExtensibilityLibrary {
       this._spHttpClient = serviceScope.consume(SPHttpClient.serviceKey);
       this._pageContext = serviceScope.consume(PageContext.serviceKey);
       this._currentWebUrl = this._pageContext.web.absoluteUrl;
+
+      Globals.userDisplayName = this._pageContext.user.displayName;
+      Globals.userEmail = this._pageContext.user.email;
+      Globals.tenant = new URL(this._pageContext.web.absoluteUrl).origin;
     });
+
+    this.insertCustomStyles();
   }
 
   public getCustomLayouts(): ILayoutDefinition[] {
@@ -48,12 +59,12 @@ export class MyCompanyLibraryLibrary implements IExtensibilityLibrary {
     
     return [
       {
-        name: 'PnP Custom layout (Handlebars)',
-        iconName: 'Color',
+        name: 'Job Opportunity',
+        iconName: 'Suitcase',
         key: 'CustomLayoutHandlebars',
         type: LayoutType.Results,
         renderType: LayoutRenderType.Handlebars,
-        templateContent: require('../custom-layout.html').default.toString(),
+        templateContent: require('../JobOpportunity.results.html'),
         serviceKey: ServiceKey.create<ILayout>('PnP:CustomLayoutHandlebars', CustomLayout),
       },
       {
@@ -82,6 +93,15 @@ export class MyCompanyLibraryLibrary implements IExtensibilityLibrary {
         renderType: LayoutRenderType.Handlebars,
         templateContent: require('../layouts/results/customPeople/custom-people.html').default.toString(),
         serviceKey: ServiceKey.create<ILayout>('PnP:CustomPeopleLayoutHandlebars', CustomPeopleLayout),
+      },
+      {
+        name: 'News Article',
+        iconName: 'News',
+        key: 'CustomLayoutNewsArticle',
+        type: LayoutType.Results,
+        renderType: LayoutRenderType.Handlebars,
+        templateContent: require('../NewsArticle/NewsArticle.results.html'),
+        serviceKey: ServiceKey.create<ILayout>('PnP:NewsArticleHandlebars', NewsArticleLayout)
       }
     ];
   }
@@ -89,16 +109,12 @@ export class MyCompanyLibraryLibrary implements IExtensibilityLibrary {
   public getCustomWebComponents(): IComponentDefinition<any>[] {
     return [
       {
-        componentName: 'my-custom-component',
+        componentName: 'job-opportunity-card',
         componentClass: MyCustomComponentWebComponent
       },
       {
-        componentName: 'custom-persona',
-        componentClass: CustomPersonaWebComponent
-      },
-      {
-        componentName: 'custom-person-card',
-        componentClass: CustomPersonCardWebComponent
+        componentName: 'news-article-card',
+        componentClass: NewsArticleWebComponent
       }
     ];
   }
@@ -115,6 +131,207 @@ export class MyCompanyLibraryLibrary implements IExtensibilityLibrary {
   }
 
   public registerHandlebarsCustomizations(namespace: typeof Handlebars) {
+    namespace.registerHelper('results', (value: any) => {
+      try {
+        if (value['string'].indexOf('\'') != -1)
+          return new namespace.SafeString(
+            `${value['string'].replace('results for', SelectLanguage(Globals.getLanguage()).resultsFor)}`
+          );
+        else 
+          return new namespace.SafeString(
+            `${value['string'].replace('results', SelectLanguage(Globals.getLanguage()).results)}`
+          );
+      }
+      catch (e) {
+        console.log(e);
+        return value;
+      }
+    });
+
+    namespace.registerHelper('resultsNoQueryText', (value: any) => {
+      try {
+        return new namespace.SafeString(
+          `${value['string']
+            .replace(' for ', '')
+            .replace(' de ', '')
+            .replace('« ','')
+            .replace(' »','')
+            .replace('<em>[object Object]</em>', '')
+            .replace('\'<em>[object Object]</em>\'', '')
+            .replace('\'\'','')
+            .replace('results', SelectLanguage(Globals.getLanguage()).results)}`
+        );
+      }
+      catch (e) {
+        console.log(e);
+        return value;
+      }
+    });
+
+    namespace.registerHelper('term', (value: string) => {
+      try {
+        const matches = value.match(/L0\|#[^|]+\|(.+)/);
+        return matches && matches[1] ? matches[1].trim() : value;
+      }
+      catch (e) {
+        console.log(e);
+        return value;
+      }
+    });
+
+    namespace.registerHelper('terms', (value: string) => {
+      try {
+        if (value){
+          let terms = [];
+          let split = value.split(';GTSet');
+          for (let i = 0; i < split.length - (split.length > 1 ? 1 : 0); i++) {
+            const parts = split[i].split('|');
+            terms.push(parts[parts.length - 1]);
+          }
+          return terms.join(', ');
+        }
+        return value;
+      }
+      catch (e) {
+        console.log(e);
+        return value;
+      }
+    });
+
+    namespace.registerHelper('opportunitiesLabel', () => {
+      try {
+        const strings = SelectLanguage(Globals.getLanguage());
+        return strings.opportunities;
+      }
+      catch (e) {
+        console.log(e);
+        return '';
+      }
+    });
+
+    namespace.registerHelper('newsArticlesLabel', () => {
+      try {
+        const strings = SelectLanguage(Globals.getLanguage());
+        if (Globals.getNewsSearchLayout()) {
+          return strings.articlesSearchTitle;
+        } else {
+          return strings.articlesTitle;
+        }
+      } catch (e) {
+        console.log(e);
+        return '';
+      }
+    });
+
+    namespace.registerHelper('logObj', (value: any) => {
+      console.log('item:', value);
+      return ''; 
+    });
+
+    namespace.registerHelper('removeDuplicates', (items: any)  => {
+      items.sort((a: { createdDate: string | number; }, b: { createdDate: string | number; }) => {
+        return new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime();
+      });
+
+      console.log("items.length", items.length);
+
+      if (items.length > 0) {
+        let finalList: any[] = [];
+        let itemCount: number = 0;
+ 
+      for (let i: number = 0; i < (items.length - 1); i++) {
+          console.log("i = ", i);
+
+          if (itemCount === 4)  {
+            break;
+          }
+
+          const item = items[i];
+          let otherLanguagePath: string;
+          let itemToPush: any;
+
+          if (item.Path.indexOf("/SitePages/fr/") === -1) {
+            otherLanguagePath = item.Path.replace("/SitePages/", "/SitePages/fr/");
+
+            console.log("article is considered English");
+            console.log("otherLanguagePath", otherLanguagePath);
+
+            if (Globals.getLanguage() === Language.French) {
+              console.log("page language is French");
+
+              // look for otherLanguagePath in original list of items
+              const otherLanguageItem = items.find((item: { Path: string; }) => item.Path === otherLanguagePath);
+
+              if (otherLanguageItem !== undefined) {
+                console.log("Found the French!");
+                itemToPush = otherLanguageItem;
+              } else {
+                console.log("Did not find the French!");
+                itemToPush = item;
+              }
+            } else {
+              console.log("page language is English");
+              itemToPush = item;
+            }
+          } else {  // article is considered French
+            otherLanguagePath = item.Path.replace("/SitePages/fr/", "/SitePages/");
+
+            console.log("article is considered French");
+            console.log("otherLanguagePath", otherLanguagePath);
+            
+            if (Globals.getLanguage() === Language.English) {
+              console.log("page language is English");
+
+              // look for otherLanguagePath in original list of items
+              const otherLanguageItem = items.find((item: { Path: string; }) => item.Path === otherLanguagePath);
+
+              if (otherLanguageItem !== undefined) {
+                console.log("Found the English!");
+                itemToPush = otherLanguageItem;
+              } else {
+                console.log("Did not find the English!");
+                itemToPush = item;
+              }
+            } else {
+              console.log("page language is French");
+              itemToPush = item;
+            }
+          }
+
+          console.log("==> itemToPush.Path", itemToPush.Path);
+          console.log("==> indexOf", finalList.indexOf(itemToPush));
+
+          if (finalList.indexOf(itemToPush) === -1) {
+            console.log("PUSH");
+            finalList.push(itemToPush);
+            itemCount = itemCount + 1;            
+          } else {
+            console.log("NO PUSH");
+          }
+        } 
+
+        return finalList;
+      }
+
+      return null;
+    });
+
+    // Register a helper for relative time
+    namespace.registerHelper('relativeDate', function(dateString) {
+      const moment = require('moment'); // Install with: npm install moment
+
+      if (Globals.getLanguage() == Language.French) {
+        moment.locale('fr');
+      }
+
+      // console.log("Globals.getPrimaryLanguage.toString()", Globals.getPrimaryLanguage.toString());
+      // moment.locale('fr');
+
+      if (!dateString) return '';
+      const date = moment(dateString);
+      if (!date.isValid()) return 'Invalid date';
+      return date.fromNow(); // e.g., "3 days ago"
+    });
 
     // Register custom Handlebars helpers
     // Usage {{myHelper 'value'}}
@@ -183,11 +400,17 @@ export class MyCompanyLibraryLibrary implements IExtensibilityLibrary {
   {
     return [
       {
-        name: 'Word Modifier',
-        key: 'WordModifier',
-        description: 'A demo query modifier from the extensibility library',
-        serviceKey: ServiceKey.create<IQueryModifier>('MyCompany:CustomQueryModifier', CustomQueryModifier)
+        name: 'Advanced Search',
+        key: 'AdvancedSearch',
+        description: 'A query modifier for career marketplace advanced search.',
+        serviceKey: ServiceKey.create<IQueryModifier>('MyCompany:CustomQueryModifier', AdvancedSearchQueryModifier)
 
+      },
+      {
+        name: 'Owner Opportunities',
+        key: 'MyOpportunities',
+        description: 'A query modifier for career marketplace which returns the logged in user\'s job opportunities that they have posted to the system.',
+        serviceKey: ServiceKey.create<IQueryModifier>('MyCompany:MyOpportunitiesQueryModifier', MyOpportunitiesQueryModifier)
       }
     ];
   
@@ -205,5 +428,32 @@ export class MyCompanyLibraryLibrary implements IExtensibilityLibrary {
 
   public name(): string {
     return 'MyCustomLibraryComponent';
+  }
+
+  private insertCustomStyles(): void {
+    const styleId = "pnpCustomStyles-CM";
+
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement("style");
+      style.id = styleId;
+
+      style.textContent = `
+        .ms-Fabric--isFocusVisible div[class*="searchButton"] button[class*="root-"]:focus::after {
+          content: "";
+          position: absolute;
+          inset: 2px;
+          border: 1px solid transparent;
+          outline: white solid 1px !important;
+          z-index: 1;
+        }
+
+        [data-sp-feature-tag*="pnpSearchBoxWebPart"] button:hover {
+          background-color: unset;
+          border-radius: 0;
+        }
+      `;
+
+      document.head.appendChild(style);
+    }
   }
 }

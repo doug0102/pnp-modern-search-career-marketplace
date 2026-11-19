@@ -3,14 +3,14 @@ declare interface IMyCompanyLibraryLibraryStrings {
   BasicGroupName: string;
   DescriptionFieldLabel: string;
   CustomQueryModifier: {
-      GroupName: string;
-      PrefixLabel: string;
-      PrefixDescription: string;
-      PrefixPlaceholder: string;
-      SuffixLabel: string;
-      SuffixDescription: string;
-      SuffixPlaceholder: string;
-    };
+    GroupName: string;
+    PrefixLabel: string;
+    PrefixDescription: string;
+    PrefixPlaceholder: string;
+    SuffixLabel: string;
+    SuffixDescription: string;
+    SuffixPlaceholder: string;
+  };
   Layouts: {
     CustomSimpleList: {
       ShowFileIconLabel: string;
@@ -21,6 +21,30 @@ declare interface IMyCompanyLibraryLibraryStrings {
       ProfilePageURL: string;
     };
   };
+  MyOpportunitiesQueryModifier: {
+    GroupName:string;
+  };
+  classificationLevel: string;
+  opportunityType: string;
+  duration: string;
+  description: string;
+  location: string;
+  deadline: string;
+  view: string;
+  apply: string;
+  results: string;
+  resultsFor: string;
+  viewAria: string;
+  applyAria: string;
+  jobExpired: string;
+  applyExpired: string;
+  undetermined: string;
+  opportunities: string;
+  searchTermFound: string;
+  articlesTitle: string;
+  articlesSearchTitle: string;
+  views: string;
+  remote: string;
 }
 
 declare module 'MyCompanyLibraryLibraryStrings' {

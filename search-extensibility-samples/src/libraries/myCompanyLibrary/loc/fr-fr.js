@@ -15,6 +15,16 @@ define([], function() {
         "MyOpportunitiesQueryModifier": {
             "GroupName": "Owner Opportunities Settings"
         },
+        "Layouts": {
+          "CustomSimpleList": {
+            "ShowFileIconLabel": "Show file icon",
+            "ShowItemThumbnailLabel": "Show thumbnail",
+            "OpenLinkInNewTab": "Open link in new tab"
+          },
+          "People": {
+            "ProfilePageURL": "Profile page URL"
+          }
+        },
         "classificationLevel": "Classification",
         "opportunityType": "Type d'opportunité",
         "duration": "Durée",
