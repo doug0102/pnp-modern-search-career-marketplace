@@ -6,7 +6,11 @@
     "scripts": {
         "build": "gulp bundle --ship && gulp package-solution --ship",
         "clean": "gulp clean",
-        "test": "gulp test"
+        "test": "gulp test",
+        "set-env:base": "npx tsc -p set-env.tsconfig.json && node dist/set-env.js --env BASE",
+        "set-env:dev": "npx tsc -p set-env.tsconfig.json && node dist/set-env.js --env DEV",
+        "set-env:uat": "npx tsc -p set-env.tsconfig.json && node dist/set-env.js --env UAT",
+        "set-env:prod": "npx tsc -p set-env.tsconfig.json && node dist/set-env.js --env PROD"
     },
     "dependencies": {
         "@fluentui/react": "8.106.4",
@@ -20,7 +24,9 @@
         "@microsoft/sp-page-context": "1.22.2",
         "@microsoft/sp-property-pane": "1.22.2",
         "@microsoft/sp-webpart-base": "1.22.2",
+        "@pnp/logging": "^4.23.0",
         "@pnp/modern-search-extensibility": "1.22.2",
+        "@pnp/sp": "^4.23.0",
         "@types/es6-promise": "0.0.33",
         "@webcomponents/custom-elements": "1.4.0",
         "@webcomponents/webcomponentsjs": "2.4.2",
